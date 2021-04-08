@@ -5,12 +5,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <!-- <%= BASE_URL %> 是为了在这里 动态获取路径的，是jsp的语法，直接运行肯定不行运行，
+    打包之后这个东西就没有了，会把这个图片当成一个外界资源来进行打包处理 -->
     <title>21.supermall</title>
   </head>
   <body>
-    <noscript>
-      <strong>We're sorry but 21.supermall doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
-    </noscript>
     <div id="app"></div>
     <!-- built files will be auto injected -->
   </body>
