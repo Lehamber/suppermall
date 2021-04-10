@@ -3,23 +3,37 @@
     <nav-bar class="home__nav">
       <div slot="center">购物街</div>
     </nav-bar>
-    <home-swper :banners="banners" />
-    <home-recommend :recommends="recommends" />
-    <home-feature />
-    <tab-contral :titles="titles" @tabClick="tabClick" class="home__tab-contral" />
-    <goods-list :goods="goods[currentType].list"/>
+    <tab-contral :titles="titles" @tabClick="tabClick"
+    :class="{'home__tab-contral': showTabContral}" ref="tabContral1" />
+    <scroll
+      class="home__content"
+      ref="scroll"
+      @scroll="scroll"
+      :probeType="3"
+      @loadMore="loadMore"
+    >
+      <home-swper :banners="banners" @swperImgLoad="swperImgLoad" />
+      <home-recommend :recommends="recommends"/>
+      <home-feature />
+      <tab-contral :titles="titles" @tabClick="tabClick" ref="tabContral2" />
+      <goods-list :goods="goods[currentType].list" />
+    </scroll>
+    <back-top v-show="showBackTop" @click.native="backTopClick" />
   </div>
 </template>
 
 <script>
-import NavBar from 'components/common/navBar/NavBar';
-import TabContral from 'components/content/tabControl/TabContral';
-import GoodsList from 'components/content/goods/GoodsList';
+import NavBar from "components/common/navBar/NavBar";
+import TabContral from "components/content/tabControl/TabContral";
+import GoodsList from "components/content/goods/GoodsList";
+import Scroll from "components/common/scroll/Scroll";
+import BackTop from "components/content/backTop/BackTop";
 
 import HomeSwper from "./childCpns/HomeSwper";
 import HomeRecommend from "./childCpns/HomeRecommend";
 import HomeFeature from "./childCpns/HomeFeature";
 
+import { debounce } from 'common/utils';
 import { getHomeMultidata, getHomeGoods } from "network/home";
 
 export default {
@@ -33,17 +47,25 @@ export default {
         new: { page: 0, list: [] },
         sell: { page: 0, list: [] },
       },
-      currentType: 'pop'
+      currentType: "pop",
+      showBackTop: false,
+      showTabContral: false,
+      tabOffsetTop: 0,
+      scrollSpan: 0  
     };
-  },  
+  },
   components: {
     NavBar,
     TabContral,
     GoodsList,
+    Scroll,
+    BackTop,
 
     HomeSwper,
     HomeRecommend,
     HomeFeature,
+  },
+  computed: {
   },
   created() {
     this.getHomeMultidata();
@@ -52,22 +74,54 @@ export default {
     this.getHomeGoods("new");
     this.getHomeGoods("sell");
   },
+  mounted() {
+    const refresh = debounce(this.$refs.scroll.refresh, 100);
+    this.$bus.$on("imgLoad", () => {
+      refresh();
+    });
+  },
   methods: {
     /**
      * 响应事件
      */
+    // 监听 tabBar 点击
     tabClick(index) {
-      switch(index) {
-        case 0: 
-          this.currentType = 'pop';
+      switch (index) {
+        case 0:
+          this.currentType = "pop";
           break;
         case 1:
-          this.currentType = 'new';
+          this.currentType = "new";
           break;
         case 2:
-          this.currentType = 'sell';
+          this.currentType = "sell";
           break;
       }
+      // 同步tabContral1 和 tabContral2 的currentIndex
+      this.$refs.tabContral1.currentIndex = index;
+      this.$refs.tabContral2.currentIndex = index;
+
+      this.$refs.scroll.scrollTo(0, -(this.tabOffsetTop-100), 500);
+    },
+    // 监听 scroll 滚动
+    scroll(position) {
+      this.showBackTop = (-position.y) > 1000;
+      this.showTabContral = (-position.y) > this.tabOffsetTop;
+    },
+    // backTop 点击事件
+    backTopClick() {
+      this.$refs && this.$refs.scroll && this.$refs.scroll.scrollTo(0, 0);
+    },
+    // 加载更多商品
+    loadMore() {
+      this.getHomeGoods(this.currentType);
+    },
+    // 监听 滚动banner图片加载
+    swperImgLoad() {
+          // 获取tabContral 的offSetTop
+      this.tabOffsetTop = this.$refs.tabContral2.$el.offsetTop;
+      console.log(this.tabOffsetTop);
+      
     },
 
     /**
@@ -91,6 +145,8 @@ export default {
         (res) => {
           this.goods[type].list.push(...res.data.list);
           this.goods[type].page++;
+
+          this.$refs.scroll && this.$refs.scroll.finishPullUp();
         },
         (err) => {
           console.log(err);
@@ -98,24 +154,37 @@ export default {
       );
     },
   },
+  activated () {
+    this.$refs.scroll.scrollTo(0, this.scrollSpan, 0);
+    // this.$refs.scroll.refresh();
+  },
+  deactivated () {
+    this.scrollSpan = this.$refs.scroll.getScrollY();
+  }
 };
 </script>
 <style lang='less' scoped>
 .home {
-  margin-top: 44px;
+  position: relative;
   &__nav {
     background-color: var(--color-tint);
     color: #fff;
-    position: fixed;
     font-weight: 700;
-    top: 0;
+  }
+  &__content {
+    height: calc(100vh - 93px);
+    // z-index: 1;
+    overflow: hidden;
+    position: absolute;
+    background-color: #fff;
+    top: 44px;
     left: 0;
     right: 0;
-    z-index: 9;
   }
   &__tab-contral {
-    position: sticky;
-    top: 44px;
+    position: relative;
+    z-index: 10;
   }
+
 }
 </style>

@@ -31,6 +31,7 @@ export default {
       text-align: center;
       padding: 10px 0 25px 0;
       border-bottom: 6px solid #eee;   
+      background-color: #fff;
       &__item {
          flex: 1;
       }
