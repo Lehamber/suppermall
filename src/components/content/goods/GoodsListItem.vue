@@ -30,14 +30,12 @@ export default {
   methods: {
     imgLoad() {
       // 针对 不同的路由 可以 发送不同的事件
-      // if(this.$route.path.indexOf('/home') !== -1){
-      //   this.$bus.$emit("homeImgLoad"); 
-      // }
-      // if(this.$route.path.indexOf('/detail') !== -1){
-      //   this.$bus.$emit('detailImgLoad');
-      // }
-
-      this.$bus.$emit('imgLoad');
+      if(this.$route.path.indexOf('/home') !== -1){
+        this.$bus.$emit("homeImgLoad"); 
+      }
+      if(this.$route.path.indexOf('/detail') !== -1){
+        this.$bus.$emit('detailImgLoad');
+      }
     },
     goodsItemClick() {
       this.$router.push("/detail/" + this.goodsItem.iid);

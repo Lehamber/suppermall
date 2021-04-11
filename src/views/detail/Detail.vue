@@ -33,11 +33,10 @@ import DetailCommentInfo from './childCpns/DetailCommentInfo';
   
 
 import { getDetail, Goods, GoodsParam, getRecommend } from "network/detail";
-import { itemListenerMixin } from 'common/mixin';
+import { debounce } from "common/utils";
 
 export default {
   name: "detail",
-  mixins: [itemListenerMixin],
   data() {
     return {
       iid: "",
@@ -48,8 +47,6 @@ export default {
       paramInfo: {},
       commentInfo: {},
       recommendList: [],
-
-      itemImgListener: {}
     };
   },
   components: {
@@ -70,7 +67,10 @@ export default {
     this.getRecommend();
   },
   mounted () {
-    this.$bus.$on('imgLoad', this.itemImgListener);
+    const deRefresh = debounce(this.$refs.scroll.refresh, 100);
+    this.$bus.$on('detailImgLoad', () => {
+      deRefresh();
+    });
   },
   methods: {
     /**
@@ -113,10 +113,7 @@ export default {
         this.recommendList = res.data.list;
       });
     }
-  },
-  destroyed () {
-    this.$bus.$off('imgLoad', this.itemImgListener);
-  }
+  } 
 };
 </script>
 <style lang='less' scoped>

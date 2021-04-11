@@ -39,11 +39,10 @@ import HomeRecommend from "./childCpns/HomeRecommend";
 import HomeFeature from "./childCpns/HomeFeature";
 
 import { getHomeMultidata, getHomeGoods } from "network/home";
-import { itemListenerMixin } from 'common/mixin';
+import { debounce } from "common/utils";
 
 export default {
-  name:'home',
-  mixins: [itemListenerMixin],
+  name: "home",
   data() {
     return {
       banners: [],
@@ -83,6 +82,10 @@ export default {
     this.getHomeGoods("sell");
   },
   mounted() {
+    const deRefresh = debounce(this.$refs.scroll.refresh, 200);
+    this.$bus.$on("homeImgLoad", () => {
+      deRefresh();
+    });
   },
   methods: {
     /**
@@ -164,14 +167,10 @@ export default {
       this.$refs.scroll.refresh();
       this.$refs.scroll.scrollTo(0, this.scrollSpan, 0);
     });
-
-    this.$bus.$on("imgLoad", this.itemImgListener);
   },
   deactivated() {
     // 保存y值
     this.scrollSpan = this.$refs.scroll.getScrollY();
-    // 取消全局事件 监听
-    this.$bus.$off("imgLoad", this.itemImgListener);
   },
 };
 </script>
