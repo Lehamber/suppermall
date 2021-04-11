@@ -7,6 +7,7 @@ const Home = () => import('views/home/Home');
 const Category = () => import('views/category/Category');
 const Profile = () => import('views/profile/Profile');
 const Shopcart = () => import('views/shopcart/Shopcart');
+const Detail = () => import('views/detail/Detail');
 
 export default new Router({
   routes: [
@@ -33,6 +34,11 @@ export default new Router({
       path: '/profile',
       name: 'profile',
       component: Profile
+    },
+    {
+      path: '/detail/:iid',
+      name: 'detail',
+      component: Detail
     }
   ],
   mode: 'history' 

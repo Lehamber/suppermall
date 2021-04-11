@@ -1,34 +1,30 @@
 <template>
-   <div>
-       <keep-alive>
-          <router-view></router-view>
-       </keep-alive>
-      <main-tab-bar></main-tab-bar> 
-   </div>
+  <div>
+    <keep-alive exclude="detail">
+      <router-view></router-view>
+    </keep-alive>
+    <main-tab-bar></main-tab-bar>
+  </div>
 </template>
 
 <script>
-import MainTabBar from 'components/content/mainTabBar/MainTabBar';
+import MainTabBar from "components/content/mainTabBar/MainTabBar";
 // import MainNavBar from 'components/content/MainNavBar';
 
 export default {
-   data () {
-      return {
+  data() {
+    return {};
+  },
 
-      };
-   },
+  components: {
+    MainTabBar,
+  },
 
-   components: {
-      MainTabBar
-   },
+  computed: {},
 
-   computed: {},
-
-   methods: {}
-}
+  methods: {},
+};
 </script>
 <style lang='css' scoped>
-@import 'assets/css/base.css';
-
-
+@import "assets/css/base.css";
 </style>

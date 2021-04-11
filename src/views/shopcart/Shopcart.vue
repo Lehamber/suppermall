@@ -1,6 +1,7 @@
 <template>
   <div>
     <h2>购物车</h2>
+    <div v-for="(item, index) in 10" :key="index">{{item}}</div>
   </div>
 </template>
 

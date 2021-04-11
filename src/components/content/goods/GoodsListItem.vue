@@ -1,7 +1,6 @@
 <template>
-  <div class="goods-item">
-    <img :src="goodsItem.show.img" @load="imgLoad" alt="" />
-
+  <div class="goods-item" @click="goodsItemClick">
+    <img :src="showImage" alt="" @load="imgLoad"/>
     <div class="text-bar">
       <p>{{ goodsItem.title }}</p>
       <span class="price">{{ goodsItem.price }}</span>
@@ -23,10 +22,26 @@ export default {
   data() {
     return {};
   },
+  computed: {
+    showImage() {
+      return this.goodsItem.image || this.goodsItem.show.img;
+    },
+  },
   methods: {
     imgLoad() {
+      // 针对 不同的路由 可以 发送不同的事件
+      // if(this.$route.path.indexOf('/home') !== -1){
+      //   this.$bus.$emit("homeImgLoad"); 
+      // }
+      // if(this.$route.path.indexOf('/detail') !== -1){
+      //   this.$bus.$emit('detailImgLoad');
+      // }
+
       this.$bus.$emit('imgLoad');
-    }
+    },
+    goodsItemClick() {
+      this.$router.push("/detail/" + this.goodsItem.iid);
+    },
   },
 };
 </script>
@@ -37,7 +52,6 @@ export default {
   margin: 4px 0;
   img {
     width: 100%;
-    // height: 80%;
     border-radius: 5px;
   }
   .text-bar {
@@ -45,6 +59,7 @@ export default {
     text-align: center;
     img {
       width: 13px;
+      height: 13px;
     }
     p {
       overflow: hidden;

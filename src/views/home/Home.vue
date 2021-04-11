@@ -3,8 +3,13 @@
     <nav-bar class="home__nav">
       <div slot="center">购物街</div>
     </nav-bar>
-    <tab-contral :titles="titles" @tabClick="tabClick"
-    :class="{'home__tab-contral': showTabContral}" ref="tabContral1" />
+    <tab-contral
+      :titles="titles"
+      @tabClick="tabClick"
+      :class="{ 'home__tab-contral': showTabContral }"
+      ref="tabContral1"
+    />
+
     <scroll
       class="home__content"
       ref="scroll"
@@ -12,8 +17,8 @@
       :probeType="3"
       @loadMore="loadMore"
     >
-      <home-swper :banners="banners" @swperImgLoad="swperImgLoad" />
-      <home-recommend :recommends="recommends"/>
+      <home-swiper :banners="banners" @swperImgLoad="swperImgLoad" />
+      <home-recommend :recommends="recommends" />
       <home-feature />
       <tab-contral :titles="titles" @tabClick="tabClick" ref="tabContral2" />
       <goods-list :goods="goods[currentType].list" />
@@ -29,14 +34,16 @@ import GoodsList from "components/content/goods/GoodsList";
 import Scroll from "components/common/scroll/Scroll";
 import BackTop from "components/content/backTop/BackTop";
 
-import HomeSwper from "./childCpns/HomeSwper";
+import HomeSwiper from "./childCpns/HomeSwiper";
 import HomeRecommend from "./childCpns/HomeRecommend";
 import HomeFeature from "./childCpns/HomeFeature";
 
-import { debounce } from 'common/utils';
 import { getHomeMultidata, getHomeGoods } from "network/home";
+import { itemListenerMixin } from 'common/mixin';
 
 export default {
+  name:'home',
+  mixins: [itemListenerMixin],
   data() {
     return {
       banners: [],
@@ -51,7 +58,9 @@ export default {
       showBackTop: false,
       showTabContral: false,
       tabOffsetTop: 0,
-      scrollSpan: 0  
+      scrollSpan: 0,
+
+      itemImgListener: {},
     };
   },
   components: {
@@ -61,12 +70,11 @@ export default {
     Scroll,
     BackTop,
 
-    HomeSwper,
+    HomeSwiper,
     HomeRecommend,
     HomeFeature,
   },
-  computed: {
-  },
+  computed: {},
   created() {
     this.getHomeMultidata();
 
@@ -75,10 +83,6 @@ export default {
     this.getHomeGoods("sell");
   },
   mounted() {
-    const refresh = debounce(this.$refs.scroll.refresh, 100);
-    this.$bus.$on("imgLoad", () => {
-      refresh();
-    });
   },
   methods: {
     /**
@@ -101,12 +105,12 @@ export default {
       this.$refs.tabContral1.currentIndex = index;
       this.$refs.tabContral2.currentIndex = index;
 
-      this.$refs.scroll.scrollTo(0, -(this.tabOffsetTop-100), 500);
+      this.$refs.scroll.scrollTo(0, -(this.tabOffsetTop - 100), 500);
     },
     // 监听 scroll 滚动
     scroll(position) {
-      this.showBackTop = (-position.y) > 1000;
-      this.showTabContral = (-position.y) > this.tabOffsetTop;
+      this.showBackTop = -position.y > 1000;
+      this.showTabContral = -position.y > this.tabOffsetTop;
     },
     // backTop 点击事件
     backTopClick() {
@@ -118,10 +122,8 @@ export default {
     },
     // 监听 滚动banner图片加载
     swperImgLoad() {
-          // 获取tabContral 的offSetTop
+      // 获取tabContral 的offSetTop
       this.tabOffsetTop = this.$refs.tabContral2.$el.offsetTop;
-      console.log(this.tabOffsetTop);
-      
     },
 
     /**
@@ -154,13 +156,23 @@ export default {
       );
     },
   },
-  activated () {
-    this.$refs.scroll.scrollTo(0, this.scrollSpan, 0);
+  activated() {
     // this.$refs.scroll.refresh();
+    // 有时候 从详情页返回 会直接跳转到 主页顶部，我怀疑是content 高度计算的问题，
+    // 所以就使用了 refresh 方法；
+    this.$nextTick(() => {
+      this.$refs.scroll.refresh();
+      this.$refs.scroll.scrollTo(0, this.scrollSpan, 0);
+    });
+
+    this.$bus.$on("imgLoad", this.itemImgListener);
   },
-  deactivated () {
+  deactivated() {
+    // 保存y值
     this.scrollSpan = this.$refs.scroll.getScrollY();
-  }
+    // 取消全局事件 监听
+    this.$bus.$off("imgLoad", this.itemImgListener);
+  },
 };
 </script>
 <style lang='less' scoped>
@@ -185,6 +197,5 @@ export default {
     position: relative;
     z-index: 10;
   }
-
 }
 </style>
